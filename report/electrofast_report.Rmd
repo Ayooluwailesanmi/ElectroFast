@@ -1,0 +1,161 @@
+---
+title: "`r params$title`"
+author: "`r params$author`"
+date: "`r format(Sys.time(), '%d %B %Y, %H:%M')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    self_contained: true
+params:
+  parts: NULL
+  title: "ElectroFast analysis report"
+  author: ""
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 7.5, fig.height = 4.8, dpi = 120)
+P = params$parts
+tab = function(d, digits = 4) {
+  if (is.null(d) || !nrow(d)) return(invisible(NULL))
+  d[] = lapply(d, function(v) if (is.numeric(v)) signif(v, digits + 1) else v)
+  if (exists("nice_names")) names(d) = nice_names(names(d))
+  knitr::kable(d, row.names = FALSE)
+}
+pm = function(m, s, d = 2) if (is.na(s)) sprintf(paste0("%.", d, "f"), m) else sprintf(paste0("%.", d, "f ± %.", d, "f"), m, s)
+```
+
+This report covers every tab of ElectroFast that had data loaded when it was made. Tabs without data are left out.
+
+## Settings
+
+```{r}
+s = P$settings
+tab(data.frame(Setting = names(s), Value = vapply(s, function(v) paste(v, collapse = ", "), "")))
+```
+
+```{r, results = "asis", eval = !is.null(P$ecsa)}
+cat("## ECSA\n\n")
+r = P$ecsa$table
+cat(sprintf("The electrochemically active surface area is %.4f cm² (charge %.2f µC, roughness factor %.2f).\n\n",
+            r[["ECSA (cm²)"]], r[["Q (µC)"]], r[["Roughness factor"]]))
+```
+
+```{r, eval = !is.null(P$ecsa)}
+print(P$ecsa$plot)
+tab(P$ecsa$table)
+```
+
+```{r, results = "asis", eval = !is.null(P$cal)}
+cat("## ISE calibration\n\n")
+s = P$cal$res$summary
+cat(sprintf("Over %d day(s), the slope over the fitted standards (%s) was %s mV/decade, %.1f%% of the Nernstian %.2f. R² ranged from %.4f to %.4f.\n\n",
+            s$days, s$range, pm(s$slope_mean, s$slope_sd), s$pct_nernst, P$cal$res$S, s$r2_min, s$r2_max))
+if (!is.null(P$cal$bg)) {
+  b = P$cal$bg$summary
+  cat(sprintf("The background-corrected fit to all standards gave %s mV/decade (%.1f%% of Nernstian), with an effective background of %.2g M.\n\n",
+              pm(b$slope_mean, b$slope_sd), b$pct_nernst, b$b_bkg_mean))
+}
+cat("### Calibration plot\n\n")
+```
+
+```{r, eval = !is.null(P$cal)}
+print(P$cal$plot)
+```
+
+```{r, results = "asis", eval = !is.null(P$cal)}
+cat("### Each day\n\n")
+print(tab(P$cal$res$per_day[, c("day", "n", "from_M", "to_M", "slope_mV_dec", "intercept_mV", "r2", "pct_nernst")]))
+if (!is.null(P$cal$cmp)) {
+  c2 = P$cal$cmp$summary
+  cat(sprintf("\n\nSecond range: %s mV/decade (%.1f%% of Nernstian), R² %.4f to %.4f.\n\n", pm(c2$slope_mean, c2$slope_sd), c2$pct_nernst, c2$r2_min, c2$r2_max))
+}
+if (!is.null(P$cal$bg)) { cat("\n\n### Background-corrected fit, each day\n\n"); print(tab(P$cal$bg$per_day)) }
+cat("\n\n### Steps between neighbouring standards\n\n")
+print(tab(P$cal$steps))
+cat("\n\n### Files used\n\n")
+print(tab(P$cal$std[, intersect(c("file", "day", "letter", "conc_M", "include", "note"), names(P$cal$std))]))
+```
+
+```{r, results = "asis", eval = !is.null(P$rt)}
+cat("## Reading time\n\n")
+g = P$rt$suggest
+if (!is.null(g)) cat(if (is.na(g$read_s)) sprintf("No reading time reached the chosen share of settled standards (best %.0f%%).\n\n", 100 * g$share_settled)
+                     else sprintf("The suggested reading time is %d s, by which %.0f%% of the %d fitted standards had settled.\n\n", as.integer(g$read_s), 100 * g$share_settled, g$fitted_standards))
+sp = P$rt$slopes$spread
+if (!is.null(sp)) {
+  cat(sprintf("From %d s on, the slope changed by at most %.2f mV/decade on any day.", as.integer(P$rt$slopes$from_s), max(sp$spread_mV_dec)))
+  fl = sp$day[sp$flagged]
+  cat(if (length(fl)) sprintf(" Days changing by more than %g mV/decade: %s.\n\n", P$rt$slopes$flag_mV, paste(fl, collapse = ", ")) else " No day was flagged.\n\n")
+}
+```
+
+```{r, eval = !is.null(P$rt)}
+print(P$rt$plot)
+tab(P$rt$slopes$spread)
+```
+
+```{r, results = "asis", eval = !is.null(P$prec)}
+cat("## Precision\n\n")
+if (length(P$prec$notes)) cat(paste0("- ", P$prec$notes, collapse = "\n"), "\n\n")
+m = P$prec$chk$metrics
+if (!is.null(m)) print(tab(data.frame(Metric = m$metric, `SD (mV)` = round(m$SD_mV, 2), `Equivalent concentration error (%)` = round(m$conc_error_pct, 1), check.names = FALSE)))
+t = P$prec$cal$table
+if (!is.null(t)) { cat("\n\n### Calibration across days\n\n"); print(tab(t)) }
+```
+
+```{r, eval = !is.null(P$prec) && !is.null(P$prec$plot)}
+print(P$prec$plot)
+```
+
+```{r, results = "asis", eval = !is.null(P$fim)}
+cat("## Selectivity: fixed interference method\n\n")
+s = P$fim$res$summary
+cat(sprintf("With the interferent fixed at %g M, log K = %s over %d day(s) (K = %s).\n\n", P$fim$cB, pm(s$lgK_mean, s$lgK_sd), s$days, pm(s$K_mean, s$K_sd, 3)))
+```
+
+```{r, eval = !is.null(P$fim)}
+print(P$fim$plot)
+tab(P$fim$res$per_day)
+```
+
+```{r, results = "asis", eval = !is.null(P$ssm)}
+cat("## Selectivity: separate solution method\n\n")
+cat("Values are apparent when the primary and interfering ions do not both give Nernstian, parallel responses.\n\n")
+print(tab(P$ssm[, intersect(c("conc_M", "interferent_day", "E_primary_mean", "E_interferent", "lgK", "K"), names(P$ssm))]))
+```
+
+```{r, results = "asis", eval = length(P$techniques) > 0}
+for (sec in P$techniques) {
+  cat("
+
+## ", sec$title, "
+
+", sep = "")
+  if (length(sec$text)) cat(paste0("- ", sec$text, collapse = "
+"), "
+
+")
+  for (n in names(sec$plots)) { cat("### ", n, "
+
+", sep = ""); print(sec$plots[[n]]); cat("
+
+") }
+  for (n in names(sec$tables)) { cat("### ", n, "
+
+", sep = ""); print(tab(sec$tables[[n]])); cat("
+
+") }
+}
+```
+
+## Methods and references
+
+- ISE calibration: least-squares fit of EMF against −log a (Davies activities) or −log c, day by day.
+- Background-corrected fit: E = E0 + S log(x + b) (Dagar et al., Sens. Actuators B 2026, 468, 140650).
+- Selectivity: IUPAC fixed interference and separate solution methods (Umezawa et al., Pure Appl. Chem. 2000, 72, 1851).
+- Precision: linear mixed model with day as a random effect (Carnoli et al., Anal. Chim. Acta 2024, 1304, 342444).
+- ECSA: gold oxide reduction charge with 390 µC/cm² (Trasatti and Petrii, 1991).
+- Techniques: the equations and their sources are listed in the app's Equations tab.
+
+<p style="color:#999; font-size:0.8em">Made with ElectroFast</p>
