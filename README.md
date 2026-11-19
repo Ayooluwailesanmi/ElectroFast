@@ -49,8 +49,9 @@ been downloaded. Click "More info" and then "Run anyway".
 ## Browser version
 
 ElectroFast also runs in the browser, with nothing to install, at
-https://ayooluwailesanmi.github.io/ElectroFast/. R runs inside the browser, so the files you load stay on your
-computer. It works in Chrome and Edge, not in Safari. The first start takes about a minute.
+https://ayooluwailesanmi.github.io/ElectroFast/. The browser version runs on your computer. Files you load are not
+uploaded anywhere (so your data is secure and not sent over the internet). It works in Chrome and Edge, not in Safari. The first start takes about a minute.
+
 
 ## Tests
 
@@ -69,5 +70,5 @@ The name ElectroFast refers to this software. The licence does not give permissi
 modified software.
 
 These terms apply to the code of ElectroFast only. R and the R packages that ElectroFast uses keep their own
-licences. The Windows installer includes `THIRD_PARTY_PACKAGES.csv`, which lists the bundled packages with their versions and
+licences. The Windows installer lists the bundled packages with their versions and
 licences.
