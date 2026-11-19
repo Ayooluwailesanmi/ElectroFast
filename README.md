@@ -1,4 +1,5 @@
 # ElectroFast
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24361268.svg)](https://doi.org/10.5281/zenodo.24361268)
 
 ElectroFast is an R/Shiny application for electrochemical data from any potentiostat and any electrode. It covers
 surface area, CV kinetics, Tafel analysis, pulse voltammetry, OCP, chronoamperometry (including single-entity spikes),
@@ -57,6 +58,14 @@ uploaded anywhere (so your data is secure and not sent over the internet). It wo
 
 Each file in `tests/` is run from this folder with `Rscript`. `tests/check_other_readers.R` takes a folder of public
 example files as an argument: the test files of yadg (GPL-3) for BioLogic .mpt and of gamry-parser (MIT) for Gamry. The other tests make their own simulated data or use the example data above.
+
+## How to cite
+
+If you use ElectroFast in published work, please cite the version you used. For version 1.0.0:
+
+Ilesanmi, A. (2026). ElectroFast (Version 1.0.0). Zenodo. https://doi.org/10.5281/zenodo.24361269
+
+All versions are listed at https://doi.org/10.5281/zenodo.24361268.
 
 ## Licence and terms of use
 
