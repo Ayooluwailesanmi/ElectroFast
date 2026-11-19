@@ -46,6 +46,12 @@ A Windows installer is attached to each release. It includes its own copy of R a
 else needs to be installed. The installer is not code-signed, so Windows may show a SmartScreen warning when it has
 been downloaded. Click "More info" and then "Run anyway".
 
+## Browser version
+
+ElectroFast also runs in the browser, with nothing to install, at
+https://ayooluwailesanmi.github.io/ElectroFast/. R runs inside the browser, so the files you load stay on your
+computer. It works in Chrome and Edge, not in Safari. The first start takes about a minute.
+
 ## Tests
 
 Each file in `tests/` is run from this folder with `Rscript`. `tests/check_other_readers.R` takes a folder of public
