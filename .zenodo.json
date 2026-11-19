@@ -1,0 +1,15 @@
+{
+  "title": "ElectroFast",
+  "version": "1.0.0",
+  "upload_type": "software",
+  "description": "R/Shiny application for electrochemical data from any potentiostat: surface area, cyclic voltammetry, Tafel analysis, pulse voltammetry, chronoamperometry, chronopotentiometry, RDE/RRDE, impedance fitting, ISE calibration, selectivity, precision and QC charts, with HTML, PDF and PowerPoint reports. Free for academic, educational and noncommercial research use. Commercial use requires permission.",
+  "creators": [
+    {
+      "name": "Ilesanmi, Ayooluwa",
+      "affiliation": "Department of Chemistry, University of Missouri"
+    }
+  ],
+  "license": "polyform-noncommercial-1.0.0",
+  "access_right": "open",
+  "keywords": ["electrochemistry", "voltammetry", "impedance", "ion-selective electrode", "R", "Shiny"]
+}
